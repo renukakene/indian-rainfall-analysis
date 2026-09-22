@@ -55,18 +55,17 @@ This application is ready to deploy on **Streamlit Community Cloud**:
 
 ---
 
-## 📊 Dashboard Structure (10 Analysis Sections)
+## 📊 Dashboard Structure (8 Major Analysis Sections)
 
 1. **Dashboard Header & KPI Cards**: Total observations (9.06M), Grid points (4,964), Year range (2021–2025), and Maximum daily rainfall (979.14 mm).
-2. **Annual Rainfall Analysis**: Multi-year comparisons of average daily precipitation and Southwest Monsoon intensity.
-3. **Seasonal Rainfall Analysis**: Local year selector (2021–2025) displaying normal grouped bars for Winter, Pre-Monsoon, Southwest Monsoon, and Post-Monsoon.
-4. **Monthly Rainfall Analysis**: Complete 12-month Jan–Dec progression for each selected year.
-5. **Rainfall Intensity Analysis**: Annual mean daily intensity versus maximum single-day peak intensity.
-6. **Extreme Rainfall Analysis**: Highest verified rainfall event (979.14 mm on 17 June 2022) with annual maximum records.
-7. **Geographic Rainfall Distribution**: Interactive spatial map of India showing rainfall metrics across 4,964 grid cells.
-8. **Geographic Hotspots**: Top 10 grid points ranked by average daily rainfall with tabular breakdown and horizontal bar chart.
-9. **Key Data Insights**: Core findings strictly supported by the PySpark summary datasets.
-10. **Dataset Explorer**: In-browser inspection of raw summary Parquet datasets.
+2. **1. Annual Rainfall Analysis**: Multi-year comparisons of average daily precipitation and Southwest Monsoon intensity.
+3. **2. Seasonal Rainfall Analysis**: Local year selector (2021–2025) displaying normal grouped bars for Winter, Pre-Monsoon, Southwest Monsoon, and Post-Monsoon.
+4. **3. Monthly Rainfall Analysis**: Complete 12-month Jan–Dec progression for each selected year.
+5. **4. Geographic Rainfall Distribution**: Interactive spatial map of India and Top 10 Geographic Hotspots.
+6. **5. Rainfall Intensity Distribution**: Distribution across IMD categories (No Rain, Light, Moderate, Heavy, Very Heavy / Extreme).
+7. **6. Highest Rainfall Event**: Highest verified observation (979.14 mm on 17 June 2022) with annual maximum records.
+8. **7. Data Insights**: Core findings strictly supported by the PySpark summary datasets.
+9. **8. Dataset Explorer**: In-browser inspection of raw summary Parquet & CSV datasets.
 
 ---
 

@@ -4,10 +4,10 @@ BDA Mini-Project: Indian Rainfall Data Analysis Using PySpark (2021-2025)
 Streamlit Dashboard Application (app.py)
 =============================================================================
 Architecture:
-- Single scrollable page containing all 10 major analysis sections top-to-bottom.
+- Single scrollable page containing all major analysis sections top-to-bottom.
 - Local selectors placed directly above their respective visualizations.
 - No global analysis selectors in the sidebar.
-- Strict data integrity: loads existing summary Parquet files from PySpark analysis.
+- Strict data integrity: loads summary Parquet & CSV files from PySpark analysis.
 """
 
 import os
@@ -50,15 +50,6 @@ st.markdown("""
         border-radius: 6px;
         margin-bottom: 1rem;
     }
-    .note-box {
-        background-color: #F3F4F6;
-        border-left: 4px solid #6B7280;
-        padding: 0.8rem 1.1rem;
-        border-radius: 4px;
-        font-size: 0.92rem;
-        color: #374151;
-        margin-top: 0.8rem;
-    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -69,7 +60,7 @@ st.markdown("""
 @st.cache_data
 def load_datasets():
     """
-    Loads summary Parquet files generated during PySpark analysis phase.
+    Loads summary Parquet and CSV files generated during PySpark analysis phase.
     Strictly reads from dashboard_data/ without altering or creating mock datasets.
     """
     base_dir = "dashboard_data"
@@ -96,14 +87,26 @@ def load_datasets():
     seasonal_df["season"] = pd.Categorical(seasonal_df["season"], categories=season_order, ordered=True)
     seasonal_df = seasonal_df.sort_values(by=["year", "season"]).reset_index(drop=True)
     
-    return yearly_df, monthly_df, seasonal_df, geographic_df
+    # Load intensity category CSV safely
+    intensity_csv_path = os.path.join(base_dir, "intensity", "rainfall_categories.csv")
+    if os.path.exists(intensity_csv_path):
+        intensity_df = pd.read_csv(intensity_csv_path)
+        cat_order = ["No Rain", "Light", "Moderate", "Heavy", "Very Heavy / Extreme"]
+        intensity_df["rainfall_category"] = pd.Categorical(
+            intensity_df["rainfall_category"], categories=cat_order, ordered=True
+        )
+        intensity_df = intensity_df.sort_values(by="rainfall_category").reset_index(drop=True)
+    else:
+        intensity_df = None
+        
+    return yearly_df, monthly_df, seasonal_df, geographic_df, intensity_df
 
 
 try:
-    df_yearly, df_monthly, df_seasonal, df_geographic = load_datasets()
+    df_yearly, df_monthly, df_seasonal, df_geographic, df_intensity = load_datasets()
 except Exception as e:
-    st.error(f"Error loading dashboard Parquet files: {e}")
-    st.info("Ensure 'dashboard_data' folder exists with yearly, monthly, seasonal, and geographic subfolders.")
+    st.error(f"Error loading dashboard data files: {e}")
+    st.info("Ensure 'dashboard_data' folder exists with yearly, monthly, seasonal, geographic, and intensity subfolders.")
     st.stop()
 
 # Available years list for local dropdowns
@@ -123,18 +126,16 @@ st.sidebar.markdown(
     "**Total Observations**: 9,064,185 records"
 )
 st.sidebar.markdown("---")
-st.sidebar.markdown("### 📑 Section Directory")
+st.sidebar.markdown("### 📑 Page Sections")
 st.sidebar.markdown(
-    "1. [Dashboard Header & KPIs](#indian-rainfall-analysis-dashboard-2021-2025)  \n"
-    "2. [Annual Rainfall Analysis](#2-annual-rainfall-analysis)  \n"
-    "3. [Seasonal Rainfall Analysis](#3-seasonal-rainfall-analysis)  \n"
-    "4. [Monthly Rainfall Analysis](#4-monthly-rainfall-analysis)  \n"
-    "5. [Rainfall Intensity Analysis](#5-rainfall-intensity-analysis)  \n"
-    "6. [Extreme Rainfall Analysis](#6-extreme-rainfall-analysis)  \n"
-    "7. [Geographic Rainfall Distribution](#7-geographic-rainfall-distribution)  \n"
-    "8. [Geographic Hotspots](#8-geographic-hotspots)  \n"
-    "9. [Key Data Insights](#9-key-data-insights)  \n"
-    "10. [Dataset Explorer](#10-dataset-explorer)"
+    "1. [Annual Rainfall Analysis](#1-annual-rainfall-analysis)  \n"
+    "2. [Seasonal Rainfall Analysis](#2-seasonal-rainfall-analysis)  \n"
+    "3. [Monthly Rainfall Analysis](#3-monthly-rainfall-analysis)  \n"
+    "4. [Geographic Rainfall Distribution](#4-geographic-rainfall-distribution)  \n"
+    "5. [Rainfall Intensity Distribution](#5-rainfall-intensity-distribution)  \n"
+    "6. [Highest Rainfall Event](#6-highest-rainfall-event)  \n"
+    "7. [Data Insights](#7-data-insights)  \n"
+    "8. [Dataset Explorer](#8-dataset-explorer)"
 )
 st.sidebar.markdown("---")
 st.sidebar.caption("All selectors are placed directly above their respective visualizations.")
@@ -197,7 +198,7 @@ def plot_india_map(df, color_column, title_text, color_label):
 
 
 # =============================================================================
-# 1. DASHBOARD HEADER + KPI CARDS
+# HEADER + TOP KPI CARDS
 # =============================================================================
 st.markdown('<div class="main-title">🇮🇳 Indian Rainfall Analysis Dashboard (2021–2025)</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-title">Big Data Analytics Mini-Project | PySpark-Engineered Cleaned Datasets</div>', unsafe_allow_html=True)
@@ -211,14 +212,14 @@ max_daily_rainfall = float(df_yearly["maximum_rainfall_mm"].max())
 
 with kpi1:
     st.metric(
-        label="Total Valid Observations",
+        label="Total Valid Observations (2021–2025)",
         value=f"{total_observations:,}",
         help="Total individual daily observation records processed by PySpark across India (2021-2025)."
     )
 
 with kpi2:
     st.metric(
-        label="Geographic Grid Points",
+        label="Geographic Grid Points (2021–2025)",
         value=f"{total_grid_points:,}",
         help="Unique spatial 0.25° x 0.25° latitude/longitude grid cells covering the Indian landmass."
     )
@@ -241,9 +242,9 @@ st.markdown("---")
 
 
 # =============================================================================
-# 2. ANNUAL RAINFALL ANALYSIS
+# 1. ANNUAL RAINFALL ANALYSIS
 # =============================================================================
-st.subheader("2. Annual Rainfall Analysis")
+st.subheader("1. Annual Rainfall Analysis")
 st.markdown("Multi-year rainfall comparisons across the five analyzed years (2021–2025). Both charts intentionally compare all five years without filtering.")
 
 col_annual_1, col_annual_2 = st.columns(2)
@@ -293,9 +294,9 @@ st.markdown("---")
 
 
 # =============================================================================
-# 3. SEASONAL RAINFALL ANALYSIS
+# 2. SEASONAL RAINFALL ANALYSIS
 # =============================================================================
-st.subheader("3. Seasonal Rainfall Analysis")
+st.subheader("2. Seasonal Rainfall Analysis")
 
 # Local year selector directly above the seasonal chart
 col_season_sel, _ = st.columns([1, 2])
@@ -339,9 +340,9 @@ st.markdown("---")
 
 
 # =============================================================================
-# 4. MONTHLY RAINFALL ANALYSIS
+# 3. MONTHLY RAINFALL ANALYSIS
 # =============================================================================
-st.subheader("4. Monthly Rainfall Analysis")
+st.subheader("3. Monthly Rainfall Analysis")
 
 # Local year selector directly above the monthly chart
 col_month_sel, _ = st.columns([1, 2])
@@ -381,96 +382,9 @@ st.markdown("---")
 
 
 # =============================================================================
-# 5. RAINFALL INTENSITY ANALYSIS
+# 4. GEOGRAPHIC RAINFALL DISTRIBUTION
 # =============================================================================
-st.subheader("5. Rainfall Intensity Analysis")
-st.markdown("Comparison of mean daily rainfall intensity versus maximum recorded single-day peak intensity across the analyzed period.")
-
-col_int1, col_int2 = st.columns(2)
-
-with col_int1:
-    fig_int_avg = px.bar(
-        df_yearly,
-        x="year",
-        y="average_rainfall_mm",
-        text="average_rainfall_mm",
-        color="average_rainfall_mm",
-        color_continuous_scale="Blues",
-        title="<b>Annual Mean Daily Intensity (mm/day)</b>",
-        labels={"year": "Year", "average_rainfall_mm": "Daily Mean (mm)"}
-    )
-    fig_int_avg.update_traces(texttemplate="%{text:.2f} mm", textposition="outside")
-    fig_int_avg.update_layout(height=380, coloraxis_showscale=False, margin={"t": 45, "b": 20})
-    st.plotly_chart(fig_int_avg, use_container_width=True)
-
-with col_int2:
-    fig_int_max = px.bar(
-        df_yearly,
-        x="year",
-        y="maximum_rainfall_mm",
-        text="maximum_rainfall_mm",
-        color="maximum_rainfall_mm",
-        color_continuous_scale="Teal",
-        title="<b>Annual Maximum Single-Day Peak Intensity (mm)</b>",
-        labels={"year": "Year", "maximum_rainfall_mm": "Maximum Peak (mm)"}
-    )
-    fig_int_max.update_traces(texttemplate="%{text:.2f} mm", textposition="outside")
-    fig_int_max.update_layout(height=380, coloraxis_showscale=False, margin={"t": 45, "b": 20})
-    st.plotly_chart(fig_int_max, use_container_width=True)
-
-st.markdown("""
-<div class="note-box">
-    ℹ️ <strong>Note on Granular Intensity Bins</strong>: Categorizing individual daily rainfall into discrete IMD intensity classes 
-    (e.g., Light &lt; 7.5 mm, Moderate 7.6–64.4 mm, Heavy &gt; 64.5 mm) requires exporting an intensity-categorized summary dataset 
-    from the PySpark notebook. The above charts present verified intensity metrics (annual mean daily intensity vs. annual peak single-day intensity) 
-    derived from the existing summary datasets.
-</div>
-""", unsafe_allow_html=True)
-
-st.markdown("---")
-
-
-# =============================================================================
-# 6. EXTREME RAINFALL ANALYSIS
-# =============================================================================
-st.subheader("6. Extreme Rainfall Analysis")
-
-col_ex1, col_ex2 = st.columns([1, 1])
-
-with col_ex1:
-    st.markdown("""
-    <div class="event-card">
-        <h4 style="color: #1E3A8A; margin-top: 0; margin-bottom: 0.5rem;">Record Single-Day Precipitation Event</h4>
-        <p style="margin: 0.35rem 0; font-size: 1.05rem;"><strong>📅 Date:</strong> 17 June 2022</p>
-        <p style="margin: 0.35rem 0; font-size: 1.05rem;"><strong>📍 Latitude:</strong> 25.25° N</p>
-        <p style="margin: 0.35rem 0; font-size: 1.05rem;"><strong>📍 Longitude:</strong> 91.25° E</p>
-        <p style="margin: 0.35rem 0; font-size: 1.25rem; color: #DC2626;"><strong>🌧️ Rainfall:</strong> 979.14 mm</p>
-        <p style="margin-top: 0.6rem; font-size: 0.95rem; color: #1F2937; line-height: 1.4;">
-            <strong>Highest single-day rainfall observation in the analyzed PySpark dataset.</strong>
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-
-with col_ex2:
-    st.markdown("#### Annual Maximum Recorded Precipitation by Year")
-    df_peak_table = df_yearly[["year", "maximum_rainfall_mm", "average_rainfall_mm"]].copy()
-    df_peak_table.columns = ["Year", "Annual Maximum Single-Day (mm)", "Annual Daily Average (mm)"]
-    st.dataframe(
-        df_peak_table.style.format({
-            "Annual Maximum Single-Day (mm)": "{:.2f}",
-            "Annual Daily Average (mm)": "{:.2f}"
-        }),
-        use_container_width=True,
-        hide_index=True
-    )
-
-st.markdown("---")
-
-
-# =============================================================================
-# 7. GEOGRAPHIC RAINFALL DISTRIBUTION
-# =============================================================================
-st.subheader("7. Geographic Rainfall Distribution")
+st.subheader("4. Geographic Rainfall Distribution")
 
 # Local metric selector placed directly above the map
 map_metric = st.radio(
@@ -495,16 +409,10 @@ st.plotly_chart(fig_map, use_container_width=True)
 
 st.caption("Note: Each point represents an analyzed geographic rainfall grid point. Colors indicate the selected rainfall metric.")
 
-st.markdown("---")
+# Geographic Hotspots (Top 10 grid points)
+st.markdown("#### Top Geographic Rainfall Hotspots")
+st.markdown("Top 10 geographic grid points across India ranked by highest 5-year average daily rainfall:")
 
-
-# =============================================================================
-# 8. GEOGRAPHIC HOTSPOTS
-# =============================================================================
-st.subheader("8. Geographic Hotspots")
-st.markdown("Top 10 geographic grid points across India ranked by highest 5-year average daily rainfall, extracted from the verified spatial dataset.")
-
-# Calculate Top 10 grid points by average rainfall
 top10_hotspots = df_geographic.sort_values(by="average_rainfall_mm", ascending=False).head(10).reset_index(drop=True)
 top10_hotspots["Rank"] = range(1, 11)
 top10_hotspots["Location"] = top10_hotspots.apply(lambda r: f"{r.latitude:.2f}°N, {r.longitude:.2f}°E", axis=1)
@@ -512,7 +420,6 @@ top10_hotspots["Location"] = top10_hotspots.apply(lambda r: f"{r.latitude:.2f}°
 col_hot1, col_hot2 = st.columns([1, 1])
 
 with col_hot1:
-    st.markdown("#### Top 10 Grid Points by Average Rainfall")
     table_hotspots = top10_hotspots[["Rank", "latitude", "longitude", "average_rainfall_mm", "maximum_rainfall_mm", "observations"]].copy()
     table_hotspots.columns = ["Rank", "Latitude", "Longitude", "Average Rainfall (mm)", "Maximum Rainfall (mm)", "Observations"]
     
@@ -554,9 +461,82 @@ st.markdown("---")
 
 
 # =============================================================================
-# 9. KEY DATA INSIGHTS
+# 5. RAINFALL INTENSITY DISTRIBUTION (NEW)
 # =============================================================================
-st.subheader("9. Key Data Insights")
+st.subheader("5. Rainfall Intensity Distribution")
+st.markdown("Distribution of valid rainfall observations across rainfall intensity categories, based on the PySpark-cleaned dataset.")
+
+if df_intensity is not None:
+    # Polished Plotly bar chart showing all five categories in exact order:
+    # No Rain -> Light -> Moderate -> Heavy -> Very Heavy / Extreme
+    fig_intensity = px.bar(
+        df_intensity,
+        x="rainfall_category",
+        y="count",
+        text="count",
+        color="rainfall_category",
+        title="<b>Distribution of Rainfall Observations by Intensity Category (2021–2025)</b>",
+        labels={"rainfall_category": "Rainfall Intensity Category", "count": "Observation Count"},
+        color_discrete_sequence=["#93C5FD", "#60A5FA", "#3B82F6", "#1D4ED8", "#1E3A8A"]
+    )
+    fig_intensity.update_traces(texttemplate="%{text:,}", textposition="outside")
+    fig_intensity.update_layout(
+        showlegend=False,
+        height=450,
+        xaxis_title="Rainfall Intensity Category",
+        yaxis_title="Total Observations",
+        margin={"t": 50, "b": 20}
+    )
+    st.plotly_chart(fig_intensity, use_container_width=True)
+    
+    st.info("💡 The majority of valid observations fall under the No Rain category, while Very Heavy / Extreme rainfall observations form the smallest category.")
+else:
+    st.error("Error: Intensity dataset not found at 'dashboard_data/intensity/rainfall_categories.csv'. Please ensure the file exists.")
+
+st.markdown("---")
+
+
+# =============================================================================
+# 6. HIGHEST RAINFALL EVENT
+# =============================================================================
+st.subheader("6. Highest Rainfall Event")
+
+col_ex1, col_ex2 = st.columns([1, 1])
+
+with col_ex1:
+    st.markdown("""
+    <div class="event-card">
+        <h4 style="color: #1E3A8A; margin-top: 0; margin-bottom: 0.5rem;">Record Single-Day Precipitation Event</h4>
+        <p style="margin: 0.35rem 0; font-size: 1.05rem;"><strong>📅 Date:</strong> 17 June 2022</p>
+        <p style="margin: 0.35rem 0; font-size: 1.05rem;"><strong>📍 Latitude:</strong> 25.25° N</p>
+        <p style="margin: 0.35rem 0; font-size: 1.05rem;"><strong>📍 Longitude:</strong> 91.25° E</p>
+        <p style="margin: 0.35rem 0; font-size: 1.25rem; color: #DC2626;"><strong>🌧️ Rainfall:</strong> 979.14 mm</p>
+        <p style="margin-top: 0.6rem; font-size: 0.95rem; color: #1F2937; line-height: 1.4;">
+            <strong>Highest single-day rainfall observation in the analyzed PySpark dataset.</strong>
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col_ex2:
+    st.markdown("#### Annual Maximum Recorded Precipitation by Year")
+    df_peak_table = df_yearly[["year", "maximum_rainfall_mm", "average_rainfall_mm"]].copy()
+    df_peak_table.columns = ["Year", "Annual Maximum Single-Day (mm)", "Annual Daily Average (mm)"]
+    st.dataframe(
+        df_peak_table.style.format({
+            "Annual Maximum Single-Day (mm)": "{:.2f}",
+            "Annual Daily Average (mm)": "{:.2f}"
+        }),
+        use_container_width=True,
+        hide_index=True
+    )
+
+st.markdown("---")
+
+
+# =============================================================================
+# 7. DATA INSIGHTS
+# =============================================================================
+st.subheader("7. Data Insights")
 st.markdown("Findings strictly supported by the analyzed PySpark summary datasets:")
 
 st.info(
@@ -572,14 +552,20 @@ st.markdown("---")
 
 
 # =============================================================================
-# 10. DATASET EXPLORER
+# 8. DATASET EXPLORER
 # =============================================================================
-st.subheader("10. Dataset Explorer")
-st.markdown("Inspect the underlying summary Parquet datasets generated by the PySpark pipeline:")
+st.subheader("8. Dataset Explorer")
+st.markdown("Inspect the underlying summary Parquet and CSV datasets generated by the PySpark pipeline:")
 
 dataset_choice = st.selectbox(
     "Select Summary Dataset to Inspect:",
-    options=["Yearly Summary", "Monthly Summary", "Seasonal Summary", "Geographic Summary (Sample)"],
+    options=[
+        "Yearly Summary",
+        "Monthly Summary",
+        "Seasonal Summary",
+        "Geographic Summary (Sample)",
+        "Rainfall Intensity Summary"
+    ],
     key="local_dataset_choice"
 )
 
@@ -598,6 +584,13 @@ elif dataset_choice == "Seasonal Summary":
 elif dataset_choice == "Geographic Summary (Sample)":
     st.write("📁 **Source**: `dashboard_data/geographic/` (4,964 rows × 6 columns — displaying first 100 rows)")
     st.dataframe(df_geographic.head(100), use_container_width=True, hide_index=True)
+
+elif dataset_choice == "Rainfall Intensity Summary":
+    st.write("📁 **Source**: `dashboard_data/intensity/rainfall_categories.csv` (5 rows × 2 columns)")
+    if df_intensity is not None:
+        st.dataframe(df_intensity, use_container_width=True, hide_index=True)
+    else:
+        st.error("Dataset not found at 'dashboard_data/intensity/rainfall_categories.csv'")
 
 
 # -----------------------------------------------------------------------------
