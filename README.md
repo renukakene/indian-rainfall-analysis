@@ -55,15 +55,18 @@ This application is ready to deploy on **Streamlit Community Cloud**:
 
 ---
 
-## 📊 Dashboard Features
+## 📊 Dashboard Structure (10 Analysis Sections)
 
-- **Top KPI Cards**: Total observations (9.06M), Grid points (4,964), Year range (2021–2025), and Maximum daily rainfall (979.14 mm).
-- **Annual Rainfall Analysis**: Multi-year comparisons of average daily precipitation and Southwest Monsoon intensity.
-- **Seasonal Rainfall Analysis**: Local year selector (2021–2025) displaying normal grouped bars for Winter, Pre-Monsoon, Southwest Monsoon, and Post-Monsoon.
-- **Monthly Rainfall Analysis**: Complete 12-month Jan–Dec progression for each selected year.
-- **Geographic Distribution**: Interactive spatial map of India showing rainfall metrics across 4,964 grid cells.
-- **Highest Rainfall Event & Data Insights**: Verified key findings and extreme rainfall records.
-- **Dataset Explorer**: In-browser inspection of raw summary Parquet datasets.
+1. **Dashboard Header & KPI Cards**: Total observations (9.06M), Grid points (4,964), Year range (2021–2025), and Maximum daily rainfall (979.14 mm).
+2. **Annual Rainfall Analysis**: Multi-year comparisons of average daily precipitation and Southwest Monsoon intensity.
+3. **Seasonal Rainfall Analysis**: Local year selector (2021–2025) displaying normal grouped bars for Winter, Pre-Monsoon, Southwest Monsoon, and Post-Monsoon.
+4. **Monthly Rainfall Analysis**: Complete 12-month Jan–Dec progression for each selected year.
+5. **Rainfall Intensity Analysis**: Annual mean daily intensity versus maximum single-day peak intensity.
+6. **Extreme Rainfall Analysis**: Highest verified rainfall event (979.14 mm on 17 June 2022) with annual maximum records.
+7. **Geographic Rainfall Distribution**: Interactive spatial map of India showing rainfall metrics across 4,964 grid cells.
+8. **Geographic Hotspots**: Top 10 grid points ranked by average daily rainfall with tabular breakdown and horizontal bar chart.
+9. **Key Data Insights**: Core findings strictly supported by the PySpark summary datasets.
+10. **Dataset Explorer**: In-browser inspection of raw summary Parquet datasets.
 
 ---
 
